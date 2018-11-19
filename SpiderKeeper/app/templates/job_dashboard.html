@@ -155,6 +155,7 @@
                 <th style="width: 120px">Started</th>
                 <th style="width: 10px">Log</th>
                 <th style="width: 10px">Status</th>
+                <th style="width: 10px">Download</th>
             </tr>
             {% for job in job_status.COMPLETED %}
             {% if job.job_instance %}
@@ -196,6 +197,9 @@
                     <span class="label label-danger">CANCELED</span>
                 </td>
                 {% endif %}
+                <td><a href="/project/{{ project.id }}/jobexecs/{{ job.job_execution_id }}/export.xlsx" target="_blank"
+                       data-toggle="tooltip" data-placement="top" title="{{ job.service_job_execution_id }}">XLSX</a>
+                </td>
             </tr>
             {% endif %}
             {% endfor %}

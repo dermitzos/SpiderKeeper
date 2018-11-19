@@ -1,15 +1,18 @@
 import datetime
 import os
 import tempfile
-
+import glob
 import flask_restful
 import requests
+import sys
+import logging
 from flask import Blueprint, request
 from flask import abort
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import session
+from flask import send_from_directory, send_file
 from flask_restful_swagger import swagger
 from werkzeug.utils import secure_filename
 
@@ -549,7 +552,11 @@ def job_add(project_id):
     job_instance = JobInstance()
     job_instance.spider_name = request.form['spider_name']
     job_instance.project_id = project_id
+    job_instance.export_folder = 'export_'+datetime.datetime.today().strftime('%Y.%m.%d_%H.%M.%S')
     job_instance.spider_arguments = request.form['spider_arguments']
+    if job_instance.spider_arguments is not None and job_instance.spider_arguments != '':
+        job_instance.spider_arguments += ','
+    job_instance.spider_arguments += 'export_folder='+job_instance.export_folder
     job_instance.priority = request.form.get('priority', 0)
     job_instance.run_type = request.form['run_type']
     # chose daemon manually
@@ -594,6 +601,16 @@ def job_log(project_id, job_exec_id):
     raw = res.text
     return render_template("job_log.html", log_lines=raw.split('\n'))
 
+@app.route("/project/<project_id>/jobexecs/<job_exec_id>/export.xlsx")
+def job_xlsx(project_id, job_exec_id):
+    job_execution = JobExecution.query.filter_by(project_id=project_id, id=job_exec_id).first().to_dict()
+    export_folder = job_execution['job_instance']['export_folder']
+    spider = job_execution['job_instance']['spider_name']
+    project = Project.query.filter_by(id=project_id).first().project_name
+    directory = 'exports/'+project+'/'+spider+'/'+export_folder
+    # print('export directory:'+directory, file=sys.stderr)
+    print('realpath: '+ os.path.realpath(directory), file=sys.stderr)
+    return send_file(os.path.join(os.path.realpath(directory), 'export.xlsx'), as_attachment=True, attachment_filename='export.xlsx')
 
 @app.route("/project/<project_id>/job/<job_instance_id>/run")
 def job_run(project_id, job_instance_id):

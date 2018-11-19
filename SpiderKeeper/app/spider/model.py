@@ -115,6 +115,7 @@ class JobInstance(Base):
     cron_month = db.Column(db.String(20), default="*")
     enabled = db.Column(db.INTEGER, default=0)  # 0/-1
     run_type = db.Column(db.String(20))  # periodic/onetime
+    export_folder = db.Column(db.Text)
 
     def to_dict(self):
         return dict(
@@ -130,8 +131,8 @@ class JobInstance(Base):
             cron_day_of_week=self.cron_day_of_week,
             cron_month=self.cron_month,
             enabled=self.enabled == 0,
-            run_type=self.run_type
-
+            run_type=self.run_type,
+            export_folder=self.export_folder
         )
 
     @classmethod
